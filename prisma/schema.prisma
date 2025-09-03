@@ -9,10 +9,22 @@ datasource db {
 }
 
 model users {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  fullName String
-  imageUrl String
-  clerkId  String @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullName  String
+  imageUrl  String
+  clerkId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model songs {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  artist    String
+  imageUrl  String
+  audioUrl  String
+  duration  Int
+  albumId   String?   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
