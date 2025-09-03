@@ -24,7 +24,18 @@ model songs {
   imageUrl  String
   audioUrl  String
   duration  Int
-  albumId   String?   @db.ObjectId
+  albumId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model albums {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  artist    String
+  imageUrl  String
+  songs     String[]   @db.ObjectId
+  releaseYear Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
