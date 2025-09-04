@@ -3,6 +3,7 @@ import z from 'zod';
 const lastNameValidatorSchema = z.object({
   lastName: z
     .string('Last Name must be a string')
+    .trim()
     .min(1, 'Last Name is required')
     .min(2, 'Last Name must be at least 2 characters long')
     .max(50, 'Last Name must be at most 50 characters long')
@@ -18,7 +19,7 @@ const lastNameValidatorSchema = z.object({
 
 const lastNameValidator = (lastName: string) => {
   const { success, data, error } = lastNameValidatorSchema.safeParse({
-    lastName: lastName.trim(),
+    lastName: lastName,
   });
   if (!success) {
     return { success: false, lastName: undefined, error: error.message };

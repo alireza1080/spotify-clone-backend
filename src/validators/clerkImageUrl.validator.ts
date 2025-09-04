@@ -3,13 +3,14 @@ import z from 'zod';
 const clerkImageUrlValidatorSchema = z.object({
   imageUrl: z
     .string('Clerk Image URL must be a string')
+    .trim()
     .min(1, 'Clerk Image URL is required')
     .url('Clerk Image URL must be a valid URL'),
 });
 
 const clerkImageUrlValidator = (imageUrl: string) => {
   const { success, data, error } = clerkImageUrlValidatorSchema.safeParse({
-    imageUrl: imageUrl.trim(),
+    imageUrl: imageUrl,
   });
 
   if (!success) {
