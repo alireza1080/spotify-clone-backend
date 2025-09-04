@@ -15,11 +15,13 @@ const authCallback = async (req: Request, res: Response) => {
     }
 
     const {
-      receivedClerkId,
-      receivedFirstName,
-      receivedLastName,
-      receivedImageUrl,
+      clerkId: receivedClerkId,
+      firstName: receivedFirstName,
+      lastName: receivedLastName,
+      imageUrl: receivedImageUrl,
     } = req.body;
+
+    console.log(receivedClerkId)
 
     // Check if clerkId is valid
     const { clerkId, error } = clerkIdValidator(receivedClerkId);
