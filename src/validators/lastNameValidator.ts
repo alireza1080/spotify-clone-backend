@@ -22,7 +22,11 @@ const lastNameValidator = (lastName: string) => {
     lastName: lastName,
   });
   if (!success) {
-    return { success: false, lastName: undefined, error: error.message };
+    return {
+      success: false,
+      lastName: undefined,
+      error: error?.issues[0]?.message,
+    };
   }
   return { success: true, lastName: data.lastName, error: undefined };
 };

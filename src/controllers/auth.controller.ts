@@ -21,8 +21,6 @@ const authCallback = async (req: Request, res: Response) => {
       imageUrl: receivedImageUrl,
     } = req.body;
 
-    console.log(receivedClerkId)
-
     // Check if clerkId is valid
     const { clerkId, error } = clerkIdValidator(receivedClerkId);
 

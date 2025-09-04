@@ -22,7 +22,11 @@ const firstNameValidator = (firstName: string) => {
     firstName: firstName,
   });
   if (!success) {
-    return { success: false, firstName: undefined, error: error.message };
+    return {
+      success: false,
+      firstName: undefined,
+      error: error?.issues[0]?.message,
+    };
   }
   return { success: true, firstName: data.firstName, error: undefined };
 };

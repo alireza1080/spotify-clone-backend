@@ -13,7 +13,11 @@ const clerkIdValidator = (clerkId: string) => {
     clerkId: clerkId,
   });
   if (!success) {
-    return { success: false, clerkId: undefined, error: error.message };
+    return {
+      success: false,
+      clerkId: undefined,
+      error: error?.issues[0]?.message,
+    };
   }
   return { success: true, clerkId: data.clerkId, error: undefined };
 };

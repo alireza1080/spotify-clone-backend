@@ -14,7 +14,11 @@ const clerkImageUrlValidator = (imageUrl: string) => {
   });
 
   if (!success) {
-    return { success: false, imageUrl: undefined, error: error.message };
+    return {
+      success: false,
+      imageUrl: undefined,
+      error: error?.issues[0]?.message,
+    };
   }
   return { success: true, imageUrl: data.imageUrl, error: undefined };
 };
