@@ -30,12 +30,21 @@ model songs {
 }
 
 model albums {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  artist    String
-  imageUrl  String
-  songs     String[]   @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  artist      String
+  imageUrl    String
+  songs       String[] @db.ObjectId
   releaseYear Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model messages {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  senderId String
+  receiverId String
+  content String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
