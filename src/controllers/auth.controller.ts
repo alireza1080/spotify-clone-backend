@@ -2,6 +2,8 @@ import { prisma } from 'services/db.service.js';
 import { Request, Response } from 'express';
 import { clerkIdValidator } from 'validators/clerkId.validator.js';
 import { firstNameValidator } from 'validators/firstName.validator.js';
+import { lastNameValidator } from 'validators/lastNameValidator.js';
+import { clerkImageUrlValidator } from 'validators/clerkImageUrl.validator.js';
 
 const authCallback = async (req: Request, res: Response) => {
   try {
@@ -34,22 +36,38 @@ const authCallback = async (req: Request, res: Response) => {
     });
 
     if (user) {
-      return res.status(200).json({ message: 'User already exists', success: true });
+      return res
+        .status(200)
+        .json({ message: 'User already exists', success: true });
     }
 
     // Check if first name is valid
-    const { firstName, error: firstNameError } = firstNameValidator(receivedFirstName);
+    const { firstName, error: firstNameError } =
+      firstNameValidator(receivedFirstName);
     if (!firstName) {
       return res.status(400).json({ message: firstNameError, success: false });
     }
 
+    // Check if last name is valid
+    const { lastName, error: lastNameError } =
+      lastNameValidator(receivedLastName);
+    if (!lastName) {
+      return res.status(400).json({ message: lastNameError, success: false });
+    }
+
+    // Check if image url is valid
+    const { imageUrl, error: imageUrlError } =
+      clerkImageUrlValidator(receivedImageUrl);
+    if (!imageUrl) {
+      return res.status(400).json({ message: imageUrlError, success: false });
+    }
+
+    // Create user
     await prisma.users.create({
       data: {
         clerkId,
-        fullName: `${receivedFirstName} ${receivedLastName}`,
-        imageUrl: receivedImageUrl,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        fullName: `${firstName} ${lastName}`,
+        imageUrl,
       },
     });
 
