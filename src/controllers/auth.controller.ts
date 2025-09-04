@@ -1,6 +1,7 @@
 import { prisma } from 'services/db.service.js';
 import { Request, Response } from 'express';
 import { clerkIdValidator } from 'validators/clerkId.validator.js';
+import { firstNameValidator } from 'validators/firstName.validator.js';
 
 const authCallback = async (req: Request, res: Response) => {
   try {
@@ -32,17 +33,25 @@ const authCallback = async (req: Request, res: Response) => {
       },
     });
 
-    if (!user) {
-      await prisma.users.create({
-        data: {
-          clerkId,
-          fullName: `${firstName} ${lastName}`,
-          imageUrl,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
+    if (user) {
+      return res.status(200).json({ message: 'User already exists', success: true });
     }
+
+    // Check if first name is valid
+    const { firstName, error: firstNameError } = firstNameValidator(receivedFirstName);
+    if (!firstName) {
+      return res.status(400).json({ message: firstNameError, success: false });
+    }
+
+    await prisma.users.create({
+      data: {
+        clerkId,
+        fullName: `${receivedFirstName} ${receivedLastName}`,
+        imageUrl: receivedImageUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
 
     res
       .status(200)
