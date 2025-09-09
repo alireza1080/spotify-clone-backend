@@ -12,13 +12,10 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
 
     const user = await clerkClient.users.getUser(userId);
     if (user.primaryEmailAddress?.emailAddress !== adminEmail) {
-      return res
-        .status(401)
-        .json({
-          message:
-            'Unauthorized - You must be an admin to access this resource',
-          success: false,
-        });
+      return res.status(401).json({
+        message: 'Unauthorized - You must be an admin to access this resource',
+        success: false,
+      });
     }
     next();
   } catch (error) {
