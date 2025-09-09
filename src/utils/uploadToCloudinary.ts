@@ -1,19 +1,20 @@
 import cloudinary from '../utils/cloudinary.js';
 import { config } from 'dotenv';
+import { type UploadedFile } from 'express-fileupload';
 
 config();
 
-const uploadToCloudinary = async (file: any) => {
-    try {
-        const result = await cloudinary.uploader.upload(file.tempFilePath, {
-            folder: process.env.CLOUDINARY_FOLDER as string,
-            resource_type: 'auto',
-        });
-        return result.secure_url;
-    } catch (error) {
-        console.error('Error uploading to Cloudinary', error);
-        throw error;
-    } 
-}
+const uploadToCloudinary = async (file: UploadedFile) => {
+  try {
+    const result = await cloudinary.uploader.upload(file.tempFilePath, {
+      folder: process.env.CLOUDINARY_FOLDER as string,
+      resource_type: 'auto',
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.error('Error uploading to Cloudinary', error);
+    throw new Error('Error uploading to Cloudinary');
+  }
+};
 
 export { uploadToCloudinary };
