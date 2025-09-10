@@ -12,7 +12,6 @@ const router = Router();
 
 router.post('/createSong', async (req, res, next) => {
   try {
-    console.log(req.files);
     // Check if song cover image is present
     if (!req.files?.songCoverImage) {
       return res
@@ -27,9 +26,41 @@ router.post('/createSong', async (req, res, next) => {
         .json({ message: 'Song audio is required', success: false });
     }
 
+    const songCoverImage = req.files.songCoverImage as UploadedFile;
+    const songAudio = req.files.songAudio as UploadedFile;
+
+    // Check if song cover image is an image
+    if (!songCoverImage?.mimetype?.startsWith('image/')) {
+      return res
+        .status(400)
+        .json({ message: 'Song cover image must be an image', success: false });
+    }
+
+    // Check if the song cover image size is less than 5MB
+    if (songCoverImage?.size > 5 * 1024 * 1024) {
+      return res
+        .status(400)
+        .json({ message: 'Song cover image must be less than 5MB', success: false });
+    }
+
+    // Check if song audio is an audio
+    if (!songAudio?.mimetype?.startsWith('audio/')) {
+      return res
+        .status(400)
+        .json({ message: 'Song audio must be an audio', success: false });
+    }
+
+    // Check if the song audio size is less than 10MB
+    if (songAudio?.size > 10 * 1024 * 1024) {
+      return res
+        .status(400)
+        .json({ message: 'Song audio must be less than 10MB', success: false });
+    }
+
+    console.log(songCoverImage, songAudio);
+    console.log(req.body);
     const { titleReceived, artistReceived, durationReceived, albumIdReceived } =
       req.body;
-    const { songCoverImage, songAudio } = req.files;
 
     // Validate song title
     const {
@@ -97,9 +128,9 @@ router.post('/createSong', async (req, res, next) => {
     next({ err: error, field: 'createSong' });
   } finally {
     // Delete temporary temp folder if it exists
-    // if (existsSync('./temp')) {
-    //   rmSync('./temp', { recursive: true });
-    // }
+    if (existsSync('./temp')) {
+      rmSync('./temp', { recursive: true });
+    }
   }
 });
 

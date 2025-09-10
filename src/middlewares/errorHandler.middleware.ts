@@ -16,7 +16,8 @@ const errorHandler = (
   res: Response
 ): Response => {
   if (isDev) {
-    console.error(`Error in ${error.field}:`, error.err);
+    console.error(`Error in ${error.field}:`, error.err.message);
+    console.error('Stack trace:', error.err.stack);
   }
   return res.status(500).json({
     message: isDev ? error.err.message : 'Internal server error',

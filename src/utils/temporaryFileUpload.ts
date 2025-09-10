@@ -5,11 +5,11 @@ const temporaryFileUpload = fileUpload({
   tempFileDir: './temp',
   createParentPath: true,
   limits: {
-    fileSize: 1024 * 1024 * 5,
+    fileSize: 1024 * 1024 * 11,
   },
   abortOnLimit: true,
   responseOnLimit: 'File too large',
-  debug: true,
+  debug: false,
   safeFileNames: true,
   preserveExtension: true,
   uploadTimeout: 10000,
