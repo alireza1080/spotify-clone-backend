@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { type UploadedFile } from 'express-fileupload';
+import { existsSync, rmSync } from 'node:fs';
 import { prisma } from 'services/db.service.js';
 import { uploadToCloudinary } from 'utils/uploadToCloudinary.js';
 import { fullNameValidator } from 'validators/fullName.validator.js';
@@ -11,6 +12,7 @@ const router = Router();
 
 router.post('/createSong', async (req, res, next) => {
   try {
+    console.log(req.files);
     // Check if song cover image is present
     if (!req.files?.songCoverImage) {
       return res
@@ -93,6 +95,11 @@ router.post('/createSong', async (req, res, next) => {
       .json({ message: 'Song created successfully', success: true, song });
   } catch (error) {
     next({ err: error, field: 'createSong' });
+  } finally {
+    // Delete temporary temp folder if it exists
+    // if (existsSync('./temp')) {
+    //   rmSync('./temp', { recursive: true });
+    // }
   }
 });
 

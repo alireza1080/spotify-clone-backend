@@ -12,7 +12,8 @@ const router = Router();
 
 router.use('/user', userRoute);
 router.use('/auth', authRoute);
-router.use('/admin', isLoggedIn, isAdmin, adminRoute);
+// router.use('/admin', isLoggedIn, isAdmin, adminRoute);
+router.use('/admin', adminRoute);
 router.use('/song', songRoute);
 router.use('/album', albumRoute);
 router.use('/stats', statsRoute);
