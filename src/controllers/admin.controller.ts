@@ -139,18 +139,18 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     // Check if album exists
-    // const album = await prisma.albums.findUnique({
-    //   where: {
-    //     id: albumId as string,
-    //   },
-    // });
+    const album = await prisma.albums.findUnique({
+      where: {
+        id: albumId as string,
+      },
+    });
 
-    // if (!album) {
-    //   return res.status(400).json({
-    //     message: 'Album does not exist in the database',
-    //     success: false,
-    //   });
-    // }
+    if (!album) {
+      return res.status(400).json({
+        message: 'Album does not exist in the database',
+        success: false,
+      });
+    }
 
     // Upload song cover image to Cloudinary
     const imageUrl = await uploadToCloudinary(songCoverImage as UploadedFile, "image");
@@ -218,12 +218,25 @@ const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // Delete song from Cloudinary
-    const imageDeletionResult = await deleteFromCloudinary(song.imageUrl);
-    const audioDeletionResult = await deleteFromCloudinary(song.audioUrl);
+    // Delete song image cover from Cloudinary
+    const imageDeletionResult = await deleteFromCloudinary(song.imageUrl, "image");
+    
+    if (!imageDeletionResult) {
+        return res.status(400).json({
+            message: 'Failed to delete song image cover from Image Storage',
+            success: false,
+        });
+    }
+    
+    // Delete song audio from Cloudinary
+    const audioDeletionResult = await deleteFromCloudinary(song.audioUrl, "audio");
 
-    console.log(imageDeletionResult);
-    console.log(audioDeletionResult);
+    if (!audioDeletionResult) {
+      return res.status(400).json({
+        message: 'Failed to delete song audio from Audio Storage',
+        success: false,
+      });
+    }
 
     // Delete song from database
     await prisma.songs.delete({
