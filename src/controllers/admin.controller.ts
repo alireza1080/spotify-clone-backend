@@ -359,7 +359,7 @@ const createAlbum = async (req: Request, res: Response, next: NextFunction) => {
       success: releaseYearSuccess,
       releaseYear: releaseYear,
       error: releaseYearError,
-    } = releaseYearValidator(releaseYearReceived);
+    } = releaseYearValidator(+releaseYearReceived);
     if (!releaseYearSuccess) {
       return res
         .status(400)
