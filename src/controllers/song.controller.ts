@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from 'services/db.service.js';
-import { songIdValidator } from 'validators/songId.validator.js';
 
-const getSongs = async (req: Request, res: Response, next: NextFunction) => {
+const getAllSongs = async (req: Request, res: Response, next: NextFunction) => {
   try {
     //! Get all songs
     const songs = await prisma.songs.findMany({
@@ -13,57 +12,59 @@ const getSongs = async (req: Request, res: Response, next: NextFunction) => {
 
     res.status(200).json({ songs, success: true });
   } catch (error) {
-    next({ err: error, field: 'getSongs' });
+    next({ err: error, field: 'getAllSongs' });
   }
 };
 
-const getSongById = async (req: Request, res: Response, next: NextFunction) => {
+const getFeaturedSongs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    //! Check if request params is present
-    if (!req.params) {
-      return res
-        .status(400)
-        .json({ message: 'Song ID is required', success: false });
-    }
-
-    //! Check if song id is present in the request params
-    if (!req.params.songId) {
-      return res
-        .status(400)
-        .json({ message: 'Song ID is required', success: false });
-    }
-
-    const { songId: songIdReceived } = req.params;
-
-    //! Validate song id
-    const {
-      success: songIdSuccess,
-      songId,
-      error: songIdError,
-    } = songIdValidator(songIdReceived);
-
-    if (!songIdSuccess) {
-      return res.status(400).json({ message: songIdError, success: false });
-    }
-
-    //! Check if song exists
-    const song = await prisma.songs.findUnique({
-      where: {
-        id: songId as string,
-      },
+    //! Get 6 random different songs
+    const featuredSongs = await prisma.songs.aggregateRaw({
+      pipeline: [{ $sample: { size: 6 } }],
     });
 
-    if (!song) {
-      return res.status(400).json({
-        message: 'Song does not exist in the database',
-        success: false,
-      });
-    }
-
-    res.status(200).json({ song, success: true });
+    res.status(200).json({ featuredSongs, success: true });
   } catch (error) {
-    next({ err: error, field: 'getSongById' });
+    next({ err: error, field: 'getFeaturedSongs' });
   }
 };
 
-export { getSongs, getSongById };
+const getMadeForYouSongs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //! Get 4 random different songs
+    const madeForYouSongs = await prisma.songs.aggregateRaw({
+      pipeline: [{ $sample: { size: 4 } }],
+    });
+
+    res.status(200).json({ madeForYouSongs, success: true });
+  } catch (error) {
+    next({ err: error, field: 'getMadeForYouSongs' });
+  }
+};
+
+const getTrendingSongs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //! Get 4 random different songs
+    const trendingSongs = await prisma.songs.aggregateRaw({
+      pipeline: [{ $sample: { size: 4 } }],
+    });
+
+    res.status(200).json({ trendingSongs, success: true });
+  } catch (error) {
+    next({ err: error, field: 'getTrendingSongs' });
+  }
+};
+
+export { getAllSongs, getFeaturedSongs, getMadeForYouSongs, getTrendingSongs };

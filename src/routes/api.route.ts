@@ -10,7 +10,7 @@ import { isLoggedIn } from '../middlewares/isLoggedIn.middleware.js';
 
 const router = Router();
 
-router.use('/user', userRoute);
+router.use('/users', userRoute);
 router.use('/auth', authRoute);
 router.use('/admin', isLoggedIn, isAdmin, adminRoute);
 router.use('/songs', songRoute);

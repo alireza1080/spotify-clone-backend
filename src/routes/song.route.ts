@@ -1,10 +1,21 @@
 import { Router } from 'express';
-import { getSongs, getSongById } from 'controllers/song.controller.js';
+import {
+  getAllSongs,
+  getFeaturedSongs,
+  getMadeForYouSongs,
+  getTrendingSongs,
+} from 'controllers/song.controller.js';
+import { isAdmin } from 'middlewares/isAdmin.middleware.js';
+import { isLoggedIn } from 'middlewares/isLoggedIn.middleware.js';
 
 const router = Router();
 
-router.get('/', getSongs);
+router.get('/', isLoggedIn, isAdmin, getAllSongs);
 
-router.get('/:songId', getSongById);
+router.get('/featured', getFeaturedSongs);
+
+router.get('/made-for-you', getMadeForYouSongs);
+
+router.get('/trending', getTrendingSongs);
 
 export default router;
