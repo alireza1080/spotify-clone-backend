@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import apiRoute from './routes/api.route.js';
@@ -21,6 +21,12 @@ app.use(cors());
 app.use(helmet());
 
 app.use('/api', apiRoute);
+
+//! not found route
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ message: 'Route not found', success: false });
+  return;
+});
 
 app.use(errorHandler);
 

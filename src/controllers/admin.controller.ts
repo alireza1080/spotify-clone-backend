@@ -12,14 +12,14 @@ import { deleteFromCloudinary } from 'utils/deleteFromCloudinary.js';
 
 const createSong = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Check if song cover image is present
+    //! Check if song cover image is present
     if (!req.files?.songCoverImage) {
       return res
         .status(400)
         .json({ message: 'Song cover image is required', success: false });
     }
 
-    // Check if song audio is present
+    //! Check if song audio is present
     if (!req.files?.songAudio) {
       return res
         .status(400)
@@ -29,14 +29,14 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
     const songCoverImage = req.files.songCoverImage as UploadedFile;
     const songAudio = req.files.songAudio as UploadedFile;
 
-    // Check if song cover image is an image
+    //! Check if song cover image is an image
     if (!songCoverImage?.mimetype?.startsWith('image/')) {
       return res
         .status(400)
         .json({ message: 'Song cover image must be an image', success: false });
     }
 
-    // Check if the song cover image size is less than 5MB
+    //! Check if the song cover image size is less than 5MB
     if (songCoverImage?.size > 5 * 1024 * 1024) {
       return res.status(400).json({
         message: 'Song cover image must be less than 5MB',
@@ -44,14 +44,14 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // Check if song audio is an audio
+    //! Check if song audio is an audio
     if (!songAudio?.mimetype?.startsWith('audio/')) {
       return res
         .status(400)
         .json({ message: 'Song audio must be an audio', success: false });
     }
 
-    // Check if the song audio size is less than 10MB
+    //! Check if the song audio size is less than 10MB
     if (songAudio?.size > 10 * 1024 * 1024) {
       return res
         .status(400)
@@ -78,7 +78,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
         .json({ message: 'Song Title is required', success: false });
     }
 
-    // Validate song title
+    //! Validate song title
     const {
       success: titleSuccess,
       songTitle: title,
@@ -95,7 +95,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
         .json({ message: 'Song Artist is required', success: false });
     }
 
-    // Validate artist
+    //! Validate artist
     const {
       success: artistSuccess,
       artistName: artist,
@@ -111,7 +111,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
         .json({ message: 'Song Duration is required', success: false });
     }
 
-    // Validate duration
+    //! Validate duration
     const {
       success: durationSuccess,
       duration,
@@ -121,14 +121,14 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ message: durationError, success: false });
     }
 
-    // Check if album id is present
+    //! Check if album id is present
     if (!albumIdReceived) {
       return res
         .status(400)
         .json({ message: 'Song Album ID is required', success: false });
     }
 
-    // Validate album id
+    //! Validate album id
     const {
       success: albumIdSuccess,
       albumId: albumId,
@@ -138,7 +138,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ message: albumIdError, success: false });
     }
 
-    // Check if album exists
+    //! Check if album exists
     const album = await prisma.albums.findUnique({
       where: {
         id: albumId as string,
@@ -152,13 +152,19 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // Upload song cover image to Cloudinary
-    const imageUrl = await uploadToCloudinary(songCoverImage as UploadedFile, "image");
+    //! Upload song cover image to Cloudinary
+    const imageUrl = await uploadToCloudinary(
+      songCoverImage as UploadedFile,
+      'image'
+    );
 
-    // Upload song audio to Cloudinary
-    const audioUrl = await uploadToCloudinary(songAudio as UploadedFile, "audio");
+    //! Upload song audio to Cloudinary
+    const audioUrl = await uploadToCloudinary(
+      songAudio as UploadedFile,
+      'audio'
+    );
 
-    // Create song
+    //! Create song
     const song = await prisma.songs.create({
       data: {
         title: title as string,
@@ -176,7 +182,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     next({ err: error, field: 'createSong' });
   } finally {
-    // Delete temporary temp folder if it exists
+    //! Delete temporary temp folder if it exists
     if (existsSync('./temp')) {
       rmSync('./temp', { recursive: true });
     }
@@ -185,7 +191,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
 
 const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Check if song id is present in the request params
+    //! Check if song id is present in the request params
     if (!req.params) {
       return res
         .status(400)
@@ -204,7 +210,7 @@ const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ message: songIdError, success: false });
     }
 
-    // Check if song exists
+    //! Check if song exists
     const song = await prisma.songs.findUnique({
       where: {
         id: songId as string,
@@ -218,18 +224,24 @@ const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // Delete song image cover from Cloudinary
-    const imageDeletionResult = await deleteFromCloudinary(song.imageUrl, "image");
-    
+    //! Delete song image cover from Cloudinary
+    const imageDeletionResult = await deleteFromCloudinary(
+      song.imageUrl,
+      'image'
+    );
+
     if (!imageDeletionResult) {
-        return res.status(400).json({
-            message: 'Failed to delete song image cover from Image Storage',
-            success: false,
-        });
+      return res.status(400).json({
+        message: 'Failed to delete song image cover from Image Storage',
+        success: false,
+      });
     }
-    
-    // Delete song audio from Cloudinary
-    const audioDeletionResult = await deleteFromCloudinary(song.audioUrl, "audio");
+
+    //! Delete song audio from Cloudinary
+    const audioDeletionResult = await deleteFromCloudinary(
+      song.audioUrl,
+      'audio'
+    );
 
     if (!audioDeletionResult) {
       return res.status(400).json({
@@ -238,7 +250,7 @@ const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
-    // Delete song from database
+    //! Delete song from database
     await prisma.songs.delete({
       where: {
         id: songId as string,
@@ -253,4 +265,45 @@ const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { createSong, deleteSong };
+const createAlbum = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    //! Check if album image is present
+    if (!req.files?.albumImage) {
+      return res
+        .status(400)
+        .json({ message: 'Album image is required', success: false });
+    }
+
+    const albumImage = req.files.albumImage as UploadedFile;
+
+    //! Check if album image is an image
+    if (!albumImage?.mimetype?.startsWith('image/')) {
+      return res
+        .status(400)
+        .json({ message: 'Album image must be an image', success: false });
+    }
+
+    //! Check if the album image size is less than 5MB
+    if (albumImage?.size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        message: 'Album image must be less than 5MB',
+        success: false,
+      });
+    }
+  } catch (error) {
+    next({ err: error, field: 'createAlbum' });
+  } finally {
+    //! Delete temporary temp folder if it exists
+    if (existsSync('./temp')) {
+      rmSync('./temp', { recursive: true });
+    }
+  }
+};
+
+const deleteAlbum = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+export { createSong, deleteSong, createAlbum, deleteAlbum };

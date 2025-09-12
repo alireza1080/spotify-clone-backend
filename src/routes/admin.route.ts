@@ -1,8 +1,16 @@
 import { Router } from 'express';
-import { createSong, deleteSong } from 'controllers/admin.controller.js';
+import { createSong, deleteSong, createAlbum, deleteAlbum } from 'controllers/admin.controller.js';
 
 const router = Router();
 
-router.post('/song', createSong).delete('/song/:songId', deleteSong);
+// Songs routes
+router.post('/songs', createSong);
+
+router.delete('/songs/:songId', deleteSong);
+
+// Albums routes
+router.post('/albums', createAlbum);
+
+router.delete('/albums/:albumId', deleteAlbum);
 
 export default router;
