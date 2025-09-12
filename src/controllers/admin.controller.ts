@@ -198,15 +198,23 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
 
 const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    //! Check if song id is present in the request params
+    //! Check if request params is present
     if (!req.params) {
       return res
         .status(400)
         .json({ message: 'Song ID is required', success: false });
     }
 
-    const { songId: songIdReceived } = req.params as { songId: string };
+    //! Check if song id is present in the request params
+    if (!req.params.songId) {
+      return res
+        .status(400)
+        .json({ message: 'Song ID is required', success: false });
+    }
 
+    const { songId: songIdReceived } = req.params;
+
+    //! Validate song id
     const {
       success: songIdSuccess,
       songId,
@@ -399,6 +407,88 @@ const deleteAlbum = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+    try {
+        //! Check if request params is present
+        if (!req.params) {
+            return res
+              .status(400)
+              .json({ message: 'Album ID is required', success: false });
+        }
+        
+        //! Check if album id is present in the request params
+        if (!req.params.albumId) {
+            return res
+              .status(400)
+              .json({ message: 'Album ID is required', success: false });
+        }
+        
+        const { albumId: albumIdReceived } = req.params;
+
+        //! Validate album id
+        const {
+            success: albumIdSuccess,
+            albumId: albumId,
+            error: albumIdError,
+        } = albumIdValidator(albumIdReceived);
+        if (!albumIdSuccess) {
+            return res.status(400).json({ message: albumIdError, success: false });
+        }
+
+        //! Check if album exists
+        const album = await prisma.albums.findUnique({
+            where: {
+                id: albumId as string,
+            },
+        });
+
+        if (!album) {
+            return res.status(400).json({
+                message: 'Album does not exist in the database',
+                success: false,
+            });
+        }
+
+        //! Check if album has songs
+        const songs = await prisma.songs.findMany({
+            where: {
+                albumId: albumId as string,
+            },
+        });
+        
+        if (songs.length > 0) {
+            return res.status(400).json({
+                message: 'Album has songs, please delete the songs first',
+                success: false,
+            });
+        }
+
+        //! Delete album image from Cloudinary
+        const imageDeletionResult = await deleteFromCloudinary(
+            album.imageUrl,
+            'image'
+        );
+
+        if (!imageDeletionResult) {
+            return res.status(400).json({
+                message: 'Failed to delete album image from Image Storage',
+                success: false,
+            });
+        }
+
+        //! Delete album from database
+        await prisma.albums.delete({
+            where: {
+                id: albumId as string,
+            },
+        });
+
+        res
+            .status(200)
+            .json({ message: 'Album deleted successfully', success: true });
+    } catch (error) {
+        next({ err: error, field: 'deleteAlbum' });
+    }
+};
 
 export { createSong, deleteSong, createAlbum, deleteAlbum };
