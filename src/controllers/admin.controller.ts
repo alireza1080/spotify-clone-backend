@@ -7,6 +7,8 @@ import { albumIdValidator } from 'validators/albumId.validator.js';
 import { artistNameValidator } from 'validators/artistName.validator.js';
 import { songDurationValidator } from 'validators/songDuration.validator.js';
 import { songTitleValidator } from 'validators/songTitle.validator.js';
+import { songIdValidator } from 'validators/songId.validator.js';
+import { deleteFromCloudinary } from 'utils/deleteFromCloudinary.js';
 
 const createSong = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -36,12 +38,10 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
 
     // Check if the song cover image size is less than 5MB
     if (songCoverImage?.size > 5 * 1024 * 1024) {
-      return res
-        .status(400)
-        .json({
-          message: 'Song cover image must be less than 5MB',
-          success: false,
-        });
+      return res.status(400).json({
+        message: 'Song cover image must be less than 5MB',
+        success: false,
+      });
     }
 
     // Check if song audio is an audio
@@ -59,12 +59,10 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (!req.body) {
-      return res
-        .status(400)
-        .json({
-          message: 'Song Title, Artist, Duration, and Album ID are required',
-          success: false,
-        });
+      return res.status(400).json({
+        message: 'Song Title, Artist, Duration, and Album ID are required',
+        success: false,
+      });
     }
 
     const {
@@ -141,26 +139,24 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     // Check if album exists
-    const album = await prisma.albums.findUnique({
-      where: {
-        id: albumId as string,
-      },
-    });
+    // const album = await prisma.albums.findUnique({
+    //   where: {
+    //     id: albumId as string,
+    //   },
+    // });
 
-    if (!album) {
-      return res
-        .status(400)
-        .json({
-          message: 'Album does not exist in the database',
-          success: false,
-        });
-    }
+    // if (!album) {
+    //   return res.status(400).json({
+    //     message: 'Album does not exist in the database',
+    //     success: false,
+    //   });
+    // }
 
     // Upload song cover image to Cloudinary
-    const imageUrl = await uploadToCloudinary(songCoverImage as UploadedFile);
+    const imageUrl = await uploadToCloudinary(songCoverImage as UploadedFile, "image");
 
     // Upload song audio to Cloudinary
-    const audioUrl = await uploadToCloudinary(songAudio as UploadedFile);
+    const audioUrl = await uploadToCloudinary(songAudio as UploadedFile, "audio");
 
     // Create song
     const song = await prisma.songs.create({
@@ -187,4 +183,61 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { createSong };
+const deleteSong = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Check if song id is present in the request params
+    if (!req.params) {
+      return res
+        .status(400)
+        .json({ message: 'Song ID is required', success: false });
+    }
+
+    const { songId: songIdReceived } = req.params as { songId: string };
+
+    const {
+      success: songIdSuccess,
+      songId,
+      error: songIdError,
+    } = songIdValidator(songIdReceived);
+
+    if (!songIdSuccess) {
+      return res.status(400).json({ message: songIdError, success: false });
+    }
+
+    // Check if song exists
+    const song = await prisma.songs.findUnique({
+      where: {
+        id: songId as string,
+      },
+    });
+
+    if (!song) {
+      return res.status(400).json({
+        message: 'Song does not exist in the database',
+        success: false,
+      });
+    }
+
+    // Delete song from Cloudinary
+    const imageDeletionResult = await deleteFromCloudinary(song.imageUrl);
+    const audioDeletionResult = await deleteFromCloudinary(song.audioUrl);
+
+    console.log(imageDeletionResult);
+    console.log(audioDeletionResult);
+
+    // Delete song from database
+    await prisma.songs.delete({
+      where: {
+        id: songId as string,
+      },
+    });
+
+    res
+      .status(200)
+      .json({ message: 'Song deleted successfully', success: true });
+  } catch (error) {
+    next({ err: error, field: 'deleteSong' });
+  }
+};
+
+export { createSong, deleteSong };
