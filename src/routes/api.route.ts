@@ -14,6 +14,7 @@ router.use('/user', userRoute);
 router.use('/auth', authRoute);
 router.use('/admin', isLoggedIn, isAdmin, adminRoute);
 router.use('/song', songRoute);
+// router.use('/album', isLoggedIn, albumRoute);
 router.use('/album', albumRoute);
 router.use('/stats', statsRoute);
 
