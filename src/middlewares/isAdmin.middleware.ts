@@ -19,8 +19,7 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
     }
     next();
   } catch (error) {
-    console.error('Error checking if user is admin', error);
-    return res.status(500).json({ message: 'Internal server error', error });
+    next({ err: error, field: 'isAdmin' });
   }
 };
 

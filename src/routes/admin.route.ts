@@ -4,16 +4,20 @@ import {
   deleteSong,
   createAlbum,
   deleteAlbum,
+  confirmAdmin,
 } from 'controllers/admin.controller.js';
 
 const router = Router();
 
-// Songs routes
+//! Admin routes
+router.get('/check', confirmAdmin);
+
+//! Songs routes
 router.post('/songs', createSong);
 
 router.delete('/songs/:songId', deleteSong);
 
-// Albums routes
+//! Albums routes
 router.post('/albums', createAlbum);
 
 router.delete('/albums/:albumId', deleteAlbum);
