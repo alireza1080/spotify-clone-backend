@@ -9,9 +9,9 @@ import { errorHandler } from 'middlewares/errorHandler.middleware.js';
 
 const app = express();
 
+app.use(temporaryFileUpload);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(temporaryFileUpload);
 
 app.use(clerkMiddleware());
 

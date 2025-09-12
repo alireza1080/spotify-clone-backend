@@ -3,14 +3,14 @@ import { type UploadedFile } from 'express-fileupload';
 import { existsSync, rmSync } from 'node:fs';
 import { prisma } from 'services/db.service.js';
 import { uploadToCloudinary } from 'utils/uploadToCloudinary.js';
-import { fullNameValidator } from 'validators/fullName.validator.js';
-import { mongoDbIdValidator } from 'validators/mongoDbId.validator.js';
+import { albumIdValidator } from 'validators/albumId.validator.js';
+import { artistNameValidator } from 'validators/artistName.validator.js';
 import { songDurationValidator } from 'validators/songDuration.validator.js';
 import { songTitleValidator } from 'validators/songTitle.validator.js';
 
 const router = Router();
 
-router.post('/createSong', async (req, res, next) => {
+router.post('/song', async (req, res, next) => {
   try {
     // Check if song cover image is present
     if (!req.files?.songCoverImage) {
@@ -57,15 +57,25 @@ router.post('/createSong', async (req, res, next) => {
         .json({ message: 'Song audio must be less than 10MB', success: false });
     }
 
-    console.log(songCoverImage, songAudio);
-    console.log(req.body);
-    const { titleReceived, artistReceived, durationReceived, albumIdReceived } =
+    if (!req.body) {
+      return res
+        .status(400)
+        .json({ message: 'Song Title, Artist, Duration, and Album ID are required', success: false });
+    }
+
+    const { title: titleReceived, artist: artistReceived, duration: durationReceived, albumId: albumIdReceived } =
       req.body;
+
+      if (!titleReceived) {
+        return res
+          .status(400)
+          .json({ message: 'Song Title is required', success: false });
+      }
 
     // Validate song title
     const {
       success: titleSuccess,
-      title,
+      songTitle: title,
       error: titleError,
     } = songTitleValidator(titleReceived);
 
@@ -73,14 +83,26 @@ router.post('/createSong', async (req, res, next) => {
       return res.status(400).json({ message: titleError, success: false });
     }
 
+    if (!artistReceived) {
+      return res
+        .status(400)
+        .json({ message: 'Song Artist is required', success: false });
+    }
+
     // Validate artist
     const {
       success: artistSuccess,
-      fullName: artist,
+      artistName: artist,
       error: artistError,
-    } = fullNameValidator(artistReceived);
+    } = artistNameValidator(artistReceived);
     if (!artistSuccess) {
       return res.status(400).json({ message: artistError, success: false });
+    }
+
+    if (!durationReceived) {
+      return res
+        .status(400)
+        .json({ message: 'Song Duration is required', success: false });
     }
 
     // Validate duration
@@ -88,19 +110,39 @@ router.post('/createSong', async (req, res, next) => {
       success: durationSuccess,
       duration,
       error: durationError,
-    } = songDurationValidator(durationReceived);
+    } = songDurationValidator(+durationReceived);
     if (!durationSuccess) {
       return res.status(400).json({ message: durationError, success: false });
+    }
+
+    // Check if album id is present
+    if (!albumIdReceived) {
+      return res
+        .status(400)
+        .json({ message: 'Song Album ID is required', success: false });
     }
 
     // Validate album id
     const {
       success: albumIdSuccess,
-      mongoDbId: albumId,
+      albumId: albumId,
       error: albumIdError,
-    } = mongoDbIdValidator(albumIdReceived);
+    } = albumIdValidator(albumIdReceived);
     if (!albumIdSuccess) {
       return res.status(400).json({ message: albumIdError, success: false });
+    }
+
+    // Check if album exists
+    const album = await prisma.albums.findUnique({
+      where: {
+        id: albumId as string,
+      },
+    });
+
+    if (!album) {
+      return res
+        .status(400)
+        .json({ message: 'Album does not exist in the database', success: false });
     }
 
     // Upload song cover image to Cloudinary
