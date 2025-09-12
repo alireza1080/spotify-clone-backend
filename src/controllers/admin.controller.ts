@@ -9,6 +9,8 @@ import { songDurationValidator } from 'validators/songDuration.validator.js';
 import { songTitleValidator } from 'validators/songTitle.validator.js';
 import { songIdValidator } from 'validators/songId.validator.js';
 import { deleteFromCloudinary } from 'utils/deleteFromCloudinary.js';
+import { albumTitleValidator } from 'validators/albumTitle.validator.js';
+import { releaseYearValidator } from 'validators/releaseYear.validator.js';
 
 const createSong = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -58,6 +60,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
         .json({ message: 'Song audio must be less than 10MB', success: false });
     }
 
+    //! Check if the request body is present
     if (!req.body) {
       return res.status(400).json({
         message: 'Song Title, Artist, Duration, and Album ID are required',
@@ -65,6 +68,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
+    //! Destructure the request body
     const {
       title: titleReceived,
       artist: artistReceived,
@@ -72,6 +76,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       albumId: albumIdReceived,
     } = req.body;
 
+    //! Check if song title is present
     if (!titleReceived) {
       return res
         .status(400)
@@ -89,6 +94,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ message: titleError, success: false });
     }
 
+    //! Check if song artist is present
     if (!artistReceived) {
       return res
         .status(400)
@@ -105,6 +111,7 @@ const createSong = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ message: artistError, success: false });
     }
 
+    //! Check if song duration is present
     if (!durationReceived) {
       return res
         .status(400)
@@ -290,6 +297,94 @@ const createAlbum = async (req: Request, res: Response, next: NextFunction) => {
         success: false,
       });
     }
+
+    //! Check if the request body is present
+    if (!req.body) {
+      return res.status(400).json({
+        message: 'Album Title, Artist, and Release Year are required',
+        success: false,
+      });
+    }
+
+    //! Destructure the request body
+    const {
+      title: titleReceived,
+      artist: artistReceived,
+      releaseYear: releaseYearReceived,
+    } = req.body;
+
+    //! Check if album title is present
+    if (!titleReceived) {
+      return res
+        .status(400)
+        .json({ message: 'Album Title is required', success: false });
+    }
+
+    //! Validate album title
+    const {
+      success: titleSuccess,
+      albumTitle: title,
+      error: titleError,
+    } = albumTitleValidator(titleReceived);
+    if (!titleSuccess) {
+      return res.status(400).json({ message: titleError, success: false });
+    }
+
+    //! Check if album artist is present
+    if (!artistReceived) {
+      return res
+        .status(400)
+        .json({ message: 'Album Artist is required', success: false });
+    }
+
+    //! Validate artist
+    const {
+      success: artistSuccess,
+      artistName: artist,
+      error: artistError,
+    } = artistNameValidator(artistReceived);
+    if (!artistSuccess) {
+      return res.status(400).json({ message: artistError, success: false });
+    }
+
+    //! Check if album release year is present
+    if (!releaseYearReceived) {
+      return res
+        .status(400)
+        .json({ message: 'Album Release Year is required', success: false });
+    }
+
+    //! Validate release year
+    const {
+      success: releaseYearSuccess,
+      releaseYear: releaseYear,
+      error: releaseYearError,
+    } = releaseYearValidator(releaseYearReceived);
+    if (!releaseYearSuccess) {
+      return res
+        .status(400)
+        .json({ message: releaseYearError, success: false });
+    }
+
+    //! Upload album image to Cloudinary
+    const imageUrl = await uploadToCloudinary(
+      albumImage as UploadedFile,
+      'image'
+    );
+
+    //! Create album
+    const album = await prisma.albums.create({
+      data: {
+        title: title as string,
+        artist: artist as string,
+        imageUrl,
+        releaseYear: releaseYear as number,
+      },
+    });
+
+    res
+      .status(200)
+      .json({ message: 'Album created successfully', success: true, album });
   } catch (error) {
     next({ err: error, field: 'createAlbum' });
   } finally {

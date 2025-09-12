@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { createSong, deleteSong, createAlbum, deleteAlbum } from 'controllers/admin.controller.js';
+import {
+  createSong,
+  deleteSong,
+  createAlbum,
+  deleteAlbum,
+} from 'controllers/admin.controller.js';
 
 const router = Router();
 
